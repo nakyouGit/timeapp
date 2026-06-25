@@ -448,6 +448,10 @@ function normalizeCfg(){
 // 時刻表記ヘルパー
 function fmtTimeLabel(h24, m, ampmMode){
   if(ampmMode === '24h') return h24+'時'+(m>0?m+'分':'');
+  if(ampmMode === '12h'){
+    const h12 = h24===0?12:h24>12?h24-12:h24;
+    return h12+'時'+(m>0?m+'分':'');
+  }
   const label = h24<12?'午前':h24===12?'午後':'午後';
   const h12 = h24===0?12:h24>12?h24-12:h24;
   return label+h12+'時'+(m>0?m+'分':'');
@@ -601,8 +605,14 @@ function renderSVG(){
     const x = fracToX(frac);
     const h24 = Math.floor(t24m/60);
     let label = fmtTimeLabel(h24, 0, cfg.ampm);
-    // 短縮：同じ午前/午後帯は2回目以降「◯時」のみ
-    if(cfg.ampm !== '24h'){
+    // 短縮：24h・12hは毎回「◯時」のみ、午前/午後は同帯で省略
+    if(cfg.ampm === '24h'){
+      label = h24+'時';
+    } else if(cfg.ampm === '12h'){
+      const h12 = h24===0?12:h24>12?h24-12:h24;
+      label = h12+'時';
+    } else {
+      // 午前/午後：同帯なら省略
       const prevH24 = h24 - 1;
       const prevAMPM = prevH24<12?'午前':'午後';
       const curAMPM  = h24<12?'午前':'午後';
@@ -1245,14 +1255,17 @@ function renderInputs(){
     g.style.width = groupW + 'px';
     g.style.top   = '6px';
 
-    // ── 1段目：午前／午後（タップ式）──
+    // ── 1段目：午前／午後（午前/午後表記のときのみ表示）──
     const ampmDiv = document.createElement('div');
     ampmDiv.className = 'inp-ampm';
-    const ampmBtn = document.createElement('div');
-    ampmBtn.className='tap-val'; ampmBtn.id=`ampm${idx}`;
-    ampmBtn.textContent = cfg.ampm === '24h' ? '24h' : cfg.ampm;
-    ampmBtn.addEventListener('click', ()=> openNumPad('ampm', idx));
-    ampmDiv.appendChild(ampmBtn);
+    if(cfg.ampm !== '24h' && cfg.ampm !== '12h'){
+      const ampmBtn = document.createElement('div');
+      ampmBtn.className='tap-val'; ampmBtn.id=`ampm${idx}`;
+      ampmBtn.textContent = cfg.ampm;
+      ampmBtn.addEventListener('click', ()=> openNumPad('ampm', idx));
+      ampmDiv.appendChild(ampmBtn);
+      g.appendChild(ampmDiv);
+    }
 
     // ── 2段目：◯時◯分（タップ式）──
     const tRow = document.createElement('div');
@@ -1312,7 +1325,6 @@ function renderInputs(){
     }
     pd.appendChild(pe);
 
-    g.appendChild(ampmDiv);
     g.appendChild(tRow);
     g.appendChild(madeDiv);
     g.appendChild(pd);
@@ -1379,8 +1391,8 @@ function openNumPad(type, idx){
     [0,10,20,30,40,50].forEach(v => addNumBtn(grid, String(v), curVal));
 
   } else if(type === 'ampm'){
-    if(cfg.ampm === '24h'){
-      // 24h表記の場合、午前/午後選択不要なのでパッドを開かない
+    if(cfg.ampm === '24h' || cfg.ampm === '12h'){
+      // 24h・12h表記の場合、午前/午後選択不要
       document.getElementById('num-pad-overlay').classList.remove('show');
       return;
     }
