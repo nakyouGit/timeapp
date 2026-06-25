@@ -273,7 +273,8 @@ main {
         <label>時刻の表記</label>
         <select id="ampm">
           <option value="午前">午前 / 午後</option>
-          <option value="24h">24時間表記</option>
+          <option value="12h">12時間表記（1〜12時）</option>
+          <option value="24h">24時間表記（0〜23時）</option>
         </select>
       </div>
     </div>
@@ -540,6 +541,10 @@ function getTotalMinutes(){
 function fmtTime(h24, m, ampmMode){
   if(ampmMode==='24h'){
     return h24+'時'+(m>0?m+'分':'');
+  }
+  if(ampmMode==='12h'){
+    const h12 = h24===0?12:h24>12?h24-12:h24;
+    return h12+'時'+(m>0?m+'分':'');
   }
   const label = h24<12?'午前':h24===12?'午後':'午後';
   const h12 = h24===0?12:h24>12?h24-12:h24;
