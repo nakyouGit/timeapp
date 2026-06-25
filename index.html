@@ -215,6 +215,8 @@ header h1 {
   display:grid; gap:7px;
 }
 .num-pad-grid.cols3 { grid-template-columns: repeat(3,1fr); }
+.num-pad-grid.cols4 { grid-template-columns: repeat(4,1fr); }
+.num-pad-grid.cols6 { grid-template-columns: repeat(6,1fr); }
 .num-pad-grid.cols2 { grid-template-columns: repeat(2,1fr); }
 .num-pad-grid.cols1 { grid-template-columns: 1fr; }
 .num-btn {
@@ -1386,9 +1388,15 @@ function openNumPad(type, idx){
     [1,2,3,4,5,6,7,8,9,10,11,12].forEach(v => addNumBtn(grid, String(v), curVal));
 
   } else if(type === 'm'){
-    title.textContent = '何分？（0〜50）';
-    grid.className = 'num-pad-grid cols3';
-    [0,10,20,30,40,50].forEach(v => addNumBtn(grid, String(v), curVal));
+    const step = cfg.tickStep || 5;
+    const maxMin = 60 - step;
+    const vals = [];
+    for(let v=0; v<=maxMin; v+=step) vals.push(v);
+    title.textContent = `何分？（0〜${maxMin}）`;
+    // 列数：6個以下は3列、12個以下は4列
+    grid.className = vals.length <= 6 ? 'num-pad-grid cols3' :
+                     vals.length <= 12 ? 'num-pad-grid cols4' : 'num-pad-grid cols6';
+    vals.forEach(v => addNumBtn(grid, String(v), curVal));
 
   } else if(type === 'ampm'){
     if(cfg.ampm === '24h' || cfg.ampm === '12h'){
