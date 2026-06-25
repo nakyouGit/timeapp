@@ -327,6 +327,7 @@ header h1 {
     <label>なまえ：</label>
     <input type="text" id="s-name" placeholder="なまえをいれてね" oninput="autoSave()">
   </div>
+  <button class="reset-btn" onclick="openTeacherModal()">⚙️ せんせい</button>
   <button class="reset-btn" onclick="resetWork()">🔄 さいしょにもどる</button>
   <button class="done-btn" onclick="submitWork()">🌟 かんせい！</button>
 </header>
@@ -351,6 +352,23 @@ header h1 {
 </div>
 
 </div><!-- /#app-root -->
+
+<!-- 先生画面パスワード確認モーダル -->
+<div class="modal-bg" id="teacher-modal">
+  <div class="modal-card">
+    <h2 style="color:#1e4f87;">🔐 せんせいようかんりがめん</h2>
+    <p style="font-size:13px;color:#607080;margin-bottom:8px;">パスワードをにゅうりょくしてください</p>
+    <input type="password" id="teacher-pw-input"
+      style="width:100%;padding:10px;border:2px solid #c0ccd8;border-radius:8px;font-size:20px;text-align:center;letter-spacing:4px;font-family:inherit;outline:none;margin-bottom:8px;"
+      placeholder="●●●●" maxlength="20"
+      onkeydown="if(event.key==='Enter') checkTeacherPw()">
+    <div id="teacher-pw-error" style="color:#d94040;font-size:12px;font-weight:700;min-height:18px;margin-bottom:8px;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="modal-close" onclick="checkTeacherPw()">はいる</button>
+      <button class="modal-close" style="background:#aaa;" onclick="document.getElementById('teacher-modal').classList.remove('show')">キャンセル</button>
+    </div>
+  </div>
+</div>
 
 <!-- 数字パッド -->
 <div class="num-pad-overlay" id="num-pad-overlay">
@@ -388,7 +406,51 @@ header h1 {
 // ════════════════════════════════════════════════════════
 let cfg = null;
 function loadCfg(){
+  // URLハッシュに設定データがあればそちらを優先
+  try{
+    const hash = location.hash.slice(1);
+    if(hash && hash.length > 10){
+      const bin = atob(hash);
+      const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+      const json = new TextDecoder().decode(bytes);
+      const parsed = JSON.parse(json);
+      if(parsed && parsed.startH !== undefined){
+        cfg = parsed;
+        normalizeCfg();
+        return;
+      }
+    }
+  }catch(e){}
+  // フォールバック：localStorage
   try{ cfg = JSON.parse(localStorage.getItem('jikan_cfg')); }catch(e){}
+  if(!cfg) return;
+  normalizeCfg();
+}
+
+function normalizeCfg(){
+  if(!cfg) return;
+  // 旧フォーマット変換
+  if(cfg.startM === undefined) cfg.startM = 0;
+  if(cfg.endH === undefined){
+    cfg.endH = (cfg.startH||5) + Math.floor(cfg.span||4);
+    cfg.endM = 0;
+  }
+  if(cfg.endM === undefined) cfg.endM = 0;
+  if(!cfg.totalMin || cfg.totalMin <= 0){
+    cfg.totalMin = (cfg.endH*60 + cfg.endM) - (cfg.startH*60 + cfg.startM);
+  }
+  if(!cfg.totalMin || cfg.totalMin <= 0) cfg.totalMin = 240;
+  if(!cfg.tickStep) cfg.tickStep = 5;
+  if(!cfg.ampm) cfg.ampm = '午後';
+  cfg.span = cfg.totalMin / 60;
+}
+
+// 時刻表記ヘルパー
+function fmtTimeLabel(h24, m, ampmMode){
+  if(ampmMode === '24h') return h24+'時'+(m>0?m+'分':'');
+  const label = h24<12?'午前':h24===12?'午後':'午後';
+  const h12 = h24===0?12:h24>12?h24-12:h24;
+  return label+h12+'時'+(m>0?m+'分':'');
 }
 
 // ════════════════════════════════════════════════════════
@@ -512,11 +574,15 @@ function renderSVG(){
     stroke:'#1a2a3a','stroke-width':5,'stroke-linecap':'round'
   }));
 
-  // ── tick marks (5分刻み=12等分) ──
-  const totalMins = cfg.span * 60;
-  for(let m=0; m<=totalMins; m+=5){
+  // ── tick marks ──
+  const totalMins = cfg.totalMin;
+  const step = cfg.tickStep || 5;
+  for(let m=0; m<=totalMins; m+=step){
     const x = PAD_L + (m/totalMins)*innerW();
-    const isH = m%60===0, isHalf = m%30===0&&!isH, isTen = m%10===0&&!isH&&!isHalf;
+    const absMins = cfg.startH*60 + cfg.startM + m;
+    const isH = absMins%60===0;
+    const isHalf = absMins%30===0&&!isH;
+    const isTen  = absMins%10===0&&!isH&&!isHalf;
     const len = isH?14 : isHalf?9 : isTen?6 : 4;
     svg.appendChild(el('line',{
       x1:x, y1:LINE_Y-len, x2:x, y2:LINE_Y+len,
@@ -525,32 +591,50 @@ function renderSVG(){
     }));
   }
 
-  // ── hour labels (text) ── 12時間表示
-  for(let i=0; i<=cfg.span; i++){
-    const x = fracToX(i/cfg.span);
-    const h24 = cfg.startH + i;
-    let label;
-    if(h24 < 12)       label = (i===0 ? cfg.ampm : '午前') + h24 + '時';
-    else if(h24 === 12) label = '午後12時';
-    else               label = '午後' + (h24-12) + '時';
-    // 先頭のみ午前/午後を付ける（以降は重複を省いて省略）
-    if(i > 0){
-      const prevH24 = cfg.startH + i - 1;
-      const prevAMPM = prevH24 < 12 ? '午前' : '午後';
-      const curAMPM  = h24 < 12 ? '午前' : '午後';
-      // 同じ午前/午後圏なら省略
-      if(prevAMPM === curAMPM){
-        label = (h24===12 ? 12 : h24<12 ? h24 : h24-12) + '時';
+  // ── 時刻ラベル（整時ごと）──
+  const startTotalMin = cfg.startH*60 + cfg.startM;
+  const endTotalMin   = cfg.endH*60   + (cfg.endM||0);
+  // ちょうど整時になる分だけラベルを表示
+  for(let t24m = Math.ceil(startTotalMin/60)*60; t24m <= endTotalMin; t24m += 60){
+    const frac = (t24m - startTotalMin) / totalMins;
+    if(frac < 0 || frac > 1.001) continue;
+    const x = fracToX(frac);
+    const h24 = Math.floor(t24m/60);
+    let label = fmtTimeLabel(h24, 0, cfg.ampm);
+    // 短縮：同じ午前/午後帯は2回目以降「◯時」のみ
+    if(cfg.ampm !== '24h'){
+      const prevH24 = h24 - 1;
+      const prevAMPM = prevH24<12?'午前':'午後';
+      const curAMPM  = h24<12?'午前':'午後';
+      if(t24m > startTotalMin && prevAMPM===curAMPM){
+        const h12 = h24===0?12:h24>12?h24-12:h24;
+        label = h12+'時';
       }
     }
-    const t = el('text',{
+    // 開始・終了が0分でない場合、開始/終了ラベルを追加
+    if(frac===0 && cfg.startM>0) label = fmtTimeLabel(cfg.startH, cfg.startM, cfg.ampm);
+    if(frac>=0.999 && cfg.endM>0) label = fmtTimeLabel(cfg.endH, cfg.endM, cfg.ampm);
+
+    const txt = el('text',{
       x, y: LINE_Y-20,
       'text-anchor':'middle','dominant-baseline':'auto',
       'font-size':13,'font-weight':900,
       fill:'#1e4f87','font-family':"'Kaisei Decol',serif"
     });
-    t.textContent = label;
-    svg.appendChild(t);
+    txt.textContent = label;
+    svg.appendChild(txt);
+  }
+  // 開始ラベル（整時でない場合）
+  if(cfg.startM > 0){
+    const txt = el('text',{x:PAD_L,y:LINE_Y-20,'text-anchor':'middle','dominant-baseline':'auto','font-size':13,'font-weight':900,fill:'#1e4f87','font-family':"'Kaisei Decol',serif"});
+    txt.textContent = fmtTimeLabel(cfg.startH, cfg.startM, cfg.ampm);
+    svg.appendChild(txt);
+  }
+  // 終了ラベル（整時でない場合）
+  if(cfg.endM > 0){
+    const txt = el('text',{x:PAD_L+innerW(),y:LINE_Y-20,'text-anchor':'middle','dominant-baseline':'auto','font-size':13,'font-weight':900,fill:'#1e4f87','font-family':"'Kaisei Decol',serif"});
+    txt.textContent = fmtTimeLabel(cfg.endH, cfg.endM, cfg.ampm);
+    svg.appendChild(txt);
   }
 
   // ── fixed event ticks ──
@@ -626,7 +710,7 @@ function drawArrows(){
 
     // ヒント：矢印の上に「〇分間」ラベル（時計と時刻ラベルの間の隙間に表示）
     if(hintOn){
-      const mins = Math.round(Math.abs(seg.e - seg.s) * cfg.span * 60);
+      const mins = Math.round(Math.abs(seg.e - seg.s) * cfg.totalMin);
       const mx = (x1 + x2) / 2;
 
       // 背景矩形（時計の下端〜時刻ラベルの間に収める）
@@ -764,9 +848,10 @@ function redrawClock(idx){
   // 先に正解角度を計算して針の色判定に使う
   let handColor = '#1e4f87'; // デフォルト色
   if(hint2On){
-    const totalMins = cfg.span * 60;
-    const endMins = Math.round(seg.e * totalMins / 5) * 5;
-    const absMin = cfg.startH * 60 + endMins;
+    const totalMins = cfg.totalMin;
+    const step = cfg.tickStep || 5;
+    const endMins = Math.round(seg.e * totalMins / step) * step;
+    const absMin = cfg.startH * 60 + (cfg.startM||0) + endMins;
     const ansH24 = Math.floor(absMin / 60);
     const ansM   = absMin % 60;
     const ansH12 = ansH24 % 12;
@@ -1104,7 +1189,7 @@ function bindArrowDrag(handle, idx, which){
     if(!dragging) return;
     const clientX = (e.touches ? e.touches[0] : e).clientX;
     const svgX = clientToSvgX(clientX);
-    const totalSnaps = 12 * cfg.span;
+    const totalSnaps = Math.round(cfg.totalMin / (cfg.tickStep||5));
     let nf = Math.max(0, Math.min(1, xToFrac(svgX)));
     nf = Math.round(nf * totalSnaps) / totalSnaps;
 
@@ -1165,7 +1250,7 @@ function renderInputs(){
     ampmDiv.className = 'inp-ampm';
     const ampmBtn = document.createElement('div');
     ampmBtn.className='tap-val'; ampmBtn.id=`ampm${idx}`;
-    ampmBtn.textContent = cfg.ampm;
+    ampmBtn.textContent = cfg.ampm === '24h' ? '24h' : cfg.ampm;
     ampmBtn.addEventListener('click', ()=> openNumPad('ampm', idx));
     ampmDiv.appendChild(ampmBtn);
 
@@ -1294,6 +1379,11 @@ function openNumPad(type, idx){
     [0,10,20,30,40,50].forEach(v => addNumBtn(grid, String(v), curVal));
 
   } else if(type === 'ampm'){
+    if(cfg.ampm === '24h'){
+      // 24h表記の場合、午前/午後選択不要なのでパッドを開かない
+      document.getElementById('num-pad-overlay').classList.remove('show');
+      return;
+    }
     title.textContent = '午前・午後';
     grid.className = 'num-pad-grid cols2';
     ['午前','午後'].forEach(v => addNumBtn(grid, v, curVal));
@@ -1338,6 +1428,33 @@ function selectNumPad(v){
 function closeNumPad(e){
   document.getElementById('num-pad-overlay').classList.remove('show');
   numPadTarget = null;
+}
+
+// ────────────────────────────────────────────────────────
+//  先生画面へのアクセス
+// ────────────────────────────────────────────────────────
+const ADMIN_PW_KEY = 'jikan_admin_pw';
+const DEFAULT_PW   = '5678';
+function getAdminPw(){ return localStorage.getItem(ADMIN_PW_KEY) || DEFAULT_PW; }
+
+function openTeacherModal(){
+  document.getElementById('teacher-modal').classList.add('show');
+  document.getElementById('teacher-pw-error').textContent = '';
+  document.getElementById('teacher-pw-input').value = '';
+  setTimeout(()=> document.getElementById('teacher-pw-input').focus(), 100);
+}
+
+function checkTeacherPw(){
+  const val = document.getElementById('teacher-pw-input').value;
+  if(val === getAdminPw()){
+    sessionStorage.setItem('jikan_admin_auth','1');
+    location.href = 'admin.html';
+  } else {
+    document.getElementById('teacher-pw-error').textContent = 'パスワードがちがいます';
+    document.getElementById('teacher-pw-input').value = '';
+    document.getElementById('teacher-pw-input').focus();
+    setTimeout(()=>{ document.getElementById('teacher-pw-error').textContent=''; }, 2000);
+  }
 }
 
 // ────────────────────────────────────────────────────────
@@ -1532,28 +1649,32 @@ function saveScreenshot(){
   });
 }
 
-setInterval(()=>{
-  try{
-    const raw=localStorage.getItem('jikan_cfg');
-    if(!raw) return;
-    const nc=JSON.parse(raw);
-    if(JSON.stringify(nc)!==JSON.stringify(cfg)){
-      cfg=nc;
-      cleanupFloating();
-      if(document.getElementById('no-setup').style.display!=='none') init();
-      else {
-        const n=(cfg.schedules&&cfg.schedules.length)?cfg.schedules.length:cfg.span;
-        const slotW=1/n;
-        segStates=Array.from({length:n},(_,i)=>({
-          s:i*slotW+slotW*0.05, e:i*slotW+slotW*0.7,
-          clockH:0, clockM:0,
-          hAngle:getHAngle(0,0), mAngle:getMAngle(0)
-        }));
-        render();
+// URLハッシュがない場合のみlocalStorageをポーリング（同一ブラウザ用）
+if(!location.hash || location.hash.length <= 1){
+  setInterval(()=>{
+    try{
+      const raw=localStorage.getItem('jikan_cfg');
+      if(!raw) return;
+      const nc=JSON.parse(raw);
+      if(JSON.stringify(nc)!==JSON.stringify(cfg)){
+        cfg=nc;
+        normalizeCfg();
+        cleanupFloating();
+        if(document.getElementById('no-setup').style.display!=='none') init();
+        else {
+          const n=(cfg.schedules&&cfg.schedules.length)?cfg.schedules.length:cfg.span;
+          const slotW=1/n;
+          segStates=Array.from({length:n},(_,i)=>({
+            s:i*slotW+slotW*0.05, e:i*slotW+slotW*0.7,
+            clockH:0, clockM:0,
+            hAngle:getHAngle(0,0), mAngle:getMAngle(0)
+          }));
+          render();
+        }
       }
-    }
-  }catch(e){}
-},2000);
+    }catch(e){}
+  },2000);
+}
 </script>
 </body>
 </html>

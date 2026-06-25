@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>じかんをしらべよう – 先生用管理画面</title>
 <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root {
   --blue: #3b82c4;
@@ -204,22 +205,48 @@ main {
 }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-/* Student link */
-.student-link-card {
-  background: var(--orange-light);
-  border: 2px solid var(--orange);
-  border-radius: 14px; padding: 14px 18px;
-  margin-top: 16px; display: flex; align-items: center; gap: 12px;
+/* パスワード画面 */
+#pw-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #0d2a50 0%, #1e4f87 100%);
+  display: flex; align-items: center; justify-content: center;
 }
-.student-link-card a {
-  color: var(--orange); font-weight: 900; font-size: 14px;
-  text-decoration: none;
+.pw-box {
+  background: #fff; border-radius: 20px;
+  padding: 36px 40px; width: 320px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
 }
-.student-link-card a:hover { text-decoration: underline; }
-.student-link-card .icon { font-size: 22px; }
+.pw-box h2 { font-size: 18px; font-weight: 900; color: #1e4f87; text-align: center; }
+.pw-box p  { font-size: 13px; color: #607080; text-align: center; }
+.pw-input {
+  width: 100%; padding: 12px 16px; border: 2px solid #c0ccd8;
+  border-radius: 10px; font-size: 18px; font-family: inherit;
+  text-align: center; letter-spacing: 4px; outline: none;
+}
+.pw-input:focus { border-color: #3b82c4; }
+.pw-btn {
+  width: 100%; padding: 13px; border: none; border-radius: 12px;
+  background: #1e4f87; color: #fff; font-family: inherit;
+  font-size: 15px; font-weight: 900; cursor: pointer;
+}
+.pw-btn:active { opacity: 0.85; }
+.pw-error { color: #d94040; font-size: 13px; font-weight: 700; min-height: 18px; }
 </style>
 </head>
 <body>
+
+<!-- パスワード画面 -->
+<div id="pw-screen">
+  <div class="pw-box">
+    <h2>🔐 せんせいようかんりがめん</h2>
+    <p>パスワードをにゅうりょくしてください</p>
+    <input type="password" id="pw-input" class="pw-input" placeholder="●●●●" maxlength="20"
+      onkeydown="if(event.key==='Enter') checkPw()">
+    <div class="pw-error" id="pw-error"></div>
+    <button class="pw-btn" onclick="checkPw()">はいる</button>
+  </div>
+</div>
 
 <header>
   <div class="badge">先生用</div>
@@ -243,31 +270,91 @@ main {
   <div class="card">
     <div class="form-grid">
       <div class="field">
-        <label>午前 / 午後</label>
+        <label>時刻の表記</label>
         <select id="ampm">
-          <option value="午前">午前</option>
-          <option value="午後" selected>午後</option>
+          <option value="午前">午前 / 午後</option>
+          <option value="24h">24時間表記</option>
         </select>
       </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-grid">
       <div class="field">
-        <label>開始時刻（時）</label>
-        <select id="start-hour">
-          <option value="1">1時</option><option value="2">2時</option>
-          <option value="3">3時</option><option value="4">4時</option>
-          <option value="5" selected>5時</option><option value="6">6時</option>
-          <option value="7">7時</option><option value="8">8時</option>
-          <option value="9">9時</option><option value="10">10時</option>
-          <option value="11">11時</option><option value="12">12時</option>
-        </select>
+        <label>開始時刻</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <select id="start-hour">
+            <option value="0">0時</option>
+            <option value="1">1時</option><option value="2">2時</option>
+            <option value="3">3時</option><option value="4">4時</option>
+            <option value="5" selected>5時</option><option value="6">6時</option>
+            <option value="7">7時</option><option value="8">8時</option>
+            <option value="9">9時</option><option value="10">10時</option>
+            <option value="11">11時</option><option value="12">12時</option>
+            <option value="13">13時</option><option value="14">14時</option>
+            <option value="15">15時</option><option value="16">16時</option>
+            <option value="17">17時</option><option value="18">18時</option>
+            <option value="19">19時</option><option value="20">20時</option>
+            <option value="21">21時</option><option value="22">22時</option>
+            <option value="23">23時</option>
+          </select>
+          <select id="start-min">
+            <option value="0">0分</option>
+            <option value="5">5分</option>
+            <option value="10">10分</option>
+            <option value="15">15分</option>
+            <option value="20">20分</option>
+            <option value="25">25分</option>
+            <option value="30">30分</option>
+            <option value="35">35分</option>
+            <option value="40">40分</option>
+            <option value="45">45分</option>
+            <option value="50">50分</option>
+            <option value="55">55分</option>
+          </select>
+        </div>
       </div>
       <div class="field">
-        <label>表示コマ数（時間）</label>
-        <select id="span">
-          <option value="2">2時間</option>
-          <option value="3">3時間</option>
-          <option value="4" selected>4時間</option>
-          <option value="5">5時間</option>
-          <option value="6">6時間</option>
+        <label>終了時刻</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <select id="end-hour">
+            <option value="1">1時</option><option value="2">2時</option>
+            <option value="3">3時</option><option value="4">4時</option>
+            <option value="5">5時</option><option value="6">6時</option>
+            <option value="7">7時</option><option value="8">8時</option>
+            <option value="9" selected>9時</option><option value="10">10時</option>
+            <option value="11">11時</option><option value="12">12時</option>
+            <option value="13">13時</option><option value="14">14時</option>
+            <option value="15">15時</option><option value="16">16時</option>
+            <option value="17">17時</option><option value="18">18時</option>
+            <option value="19">19時</option><option value="20">20時</option>
+            <option value="21">21時</option><option value="22">22時</option>
+            <option value="23">23時</option><option value="24">24時</option>
+          </select>
+          <select id="end-min">
+            <option value="0">0分</option>
+            <option value="5">5分</option>
+            <option value="10">10分</option>
+            <option value="15">15分</option>
+            <option value="20">20分</option>
+            <option value="25">25分</option>
+            <option value="30">30分</option>
+            <option value="35">35分</option>
+            <option value="40">40分</option>
+            <option value="45">45分</option>
+            <option value="50">50分</option>
+            <option value="55">55分</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>数直線の目盛り</label>
+        <select id="tick-step">
+          <option value="1">1分刻み</option>
+          <option value="5" selected>5分刻み</option>
+          <option value="10">10分刻み</option>
+          <option value="60">1時間刻み</option>
         </select>
       </div>
     </div>
@@ -287,7 +374,7 @@ main {
 
     <!-- preview -->
     <div class="preview-box" id="preview-box">
-      <div class="preview-row"><div class="preview-dot"></div><span id="prev-text">午後5時 〜 午後9時（4時間）</span></div>
+      <div class="preview-row"><div class="preview-dot"></div><span id="prev-text">午後5時0分 〜 午後9時0分（4時間）</span></div>
     </div>
   </div>
 
@@ -326,15 +413,40 @@ main {
   <!-- APPLY -->
   <div class="section-label">🚀 反映・書き出し</div>
   <div class="card">
+    <button class="apply-btn" onclick="applySettings()">✅ 設定を保存して児童用URLを生成する</button>
+
     <!-- 設定保存前は非表示、保存後に表示 -->
-    <div class="student-link-card" id="student-link-card" style="display:none;">
-      <span class="icon">🧒</span>
-      <div>
-        <div style="font-size:12px;font-weight:700;color:var(--text-sub);margin-bottom:2px;">✅ 設定が反映されました！児童はこちらを開いてください</div>
-        <a href="index.html" target="_blank">index.html（児童画面）を開く →</a>
+    <div id="student-link-card" style="display:none;margin-top:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-sub);margin-bottom:8px;">
+        🔗 児童用URL（どのブラウザでも使えます）
+      </div>
+      <!-- URL表示 -->
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="student-url" type="text" readonly
+          style="flex:1;min-width:0;padding:8px 10px;border:2px solid var(--blue);border-radius:8px;
+                 font-size:11px;font-family:inherit;color:#1a2a3a;background:#f0f6ff;outline:none;">
+        <button onclick="copyStudentUrl()"
+          style="padding:8px 14px;border:none;border-radius:8px;background:var(--blue);color:#fff;
+                 font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+          📋 コピー
+        </button>
+        <a id="student-url-open" href="#" target="_blank"
+          style="padding:8px 14px;border-radius:8px;background:var(--orange);color:#fff;
+                 font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">
+          開く →
+        </a>
+      </div>
+      <!-- QRコード -->
+      <div style="margin-top:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-sub);margin-bottom:6px;">
+          📱 QRコード（スキャンで開けます）
+        </div>
+        <div id="qr-container"
+          style="display:inline-block;padding:10px;background:#fff;border:2px solid #c0ccd8;border-radius:10px;">
+          <canvas id="qr-canvas"></canvas>
+        </div>
       </div>
     </div>
-    <button class="apply-btn" onclick="applySettings()">✅ 設定を保存して児童画面に反映する</button>
 
     <div style="margin-top:16px;padding-top:16px;border-top:2px dashed #c0ccd8;">
       <div style="font-size:13px;font-weight:700;color:var(--text-sub);margin-bottom:10px;">
@@ -349,6 +461,25 @@ main {
     </div>
 
     <button class="reset-btn" onclick="resetSettings()">🗑️ 設定をリセット（児童画面を空白に戻す）</button>
+  </div>
+
+  <!-- パスワード変更 -->
+  <div class="section-label">🔐 パスワード設定</div>
+  <div class="card">
+    <p style="font-size:13px;color:var(--text-sub);margin-bottom:12px;">
+      初期パスワード：<strong>5678</strong>　（変更推奨）
+    </p>
+    <div class="form-grid">
+      <div class="field">
+        <label>新しいパスワード</label>
+        <input type="password" id="new-pw" placeholder="新しいパスワード" maxlength="20">
+      </div>
+      <div class="field">
+        <label>確認</label>
+        <input type="password" id="new-pw2" placeholder="もう一度入力" maxlength="20">
+      </div>
+    </div>
+    <button class="apply-btn" style="margin-top:10px;" onclick="changePw()">🔑 パスワードを変更する</button>
   </div>
 
 </main>
@@ -396,16 +527,44 @@ function delItem(id) {
   renderList();
 }
 
+// ── 時刻ヘルパー ──
+function getStartMin(){ return parseInt(document.getElementById('start-min').value)||0; }
+function getEndH(){ return parseInt(document.getElementById('end-hour').value)||9; }
+function getEndMin(){ return parseInt(document.getElementById('end-min').value)||0; }
+function getTotalMinutes(){
+  const sh=parseInt(document.getElementById('start-hour').value)||5;
+  const sm=getStartMin();
+  const eh=getEndH(), em=getEndMin();
+  return (eh*60+em)-(sh*60+sm);
+}
+function fmtTime(h24, m, ampmMode){
+  if(ampmMode==='24h'){
+    return h24+'時'+(m>0?m+'分':'');
+  }
+  const label = h24<12?'午前':h24===12?'午後':'午後';
+  const h12 = h24===0?12:h24>12?h24-12:h24;
+  return label+h12+'時'+(m>0?m+'分':'');
+}
+
 // preview
 function updatePreview() {
   const ampm = document.getElementById('ampm').value;
-  const sh = parseInt(document.getElementById('start-hour').value);
-  const span = parseInt(document.getElementById('span').value);
+  const sh = parseInt(document.getElementById('start-hour').value)||5;
+  const sm = getStartMin();
+  const eh = getEndH(), em = getEndMin();
+  const totalMin = (eh*60+em)-(sh*60+sm);
+  if(totalMin<=0){
+    document.getElementById('prev-text').textContent='⚠️ 終了時刻は開始時刻より後にしてください';
+    return;
+  }
+  const h=Math.floor(totalMin/60), m=totalMin%60;
+  const dur=h>0?(h+'時間'+(m>0?m+'分':'')):(m+'分');
   document.getElementById('prev-text').textContent =
-    `${ampm}${sh}時 〜 ${ampm}${sh+span}時（${span}時間）`;
+    `${fmtTime(sh,sm,ampm)} 〜 ${fmtTime(eh,em,ampm)}（${dur}）`;
 }
-['ampm','start-hour','span'].forEach(id => {
-  document.getElementById(id).addEventListener('change', updatePreview);
+['ampm','start-hour','start-min','end-hour','end-min','tick-step'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('change', () => { updatePreview(); autoSaveDraft(); });
 });
 
 function exportHTML() {
@@ -937,11 +1096,22 @@ window.addEventListener('load',()=>{
 }
 
 function buildCfg() {
+  const sh = parseInt(document.getElementById('start-hour').value)||5;
+  const sm = parseInt(document.getElementById('start-min').value)||0;
+  const eh = parseInt(document.getElementById('end-hour').value)||9;
+  const em = parseInt(document.getElementById('end-min').value)||0;
+  const totalMin = (eh*60+em)-(sh*60+sm);
+  if(totalMin<=0){ alert('終了時刻は開始時刻より後にしてください'); return null; }
   return {
     pageTitle: document.getElementById('page-title').value || 'じかんをしらべよう',
     ampm: document.getElementById('ampm').value,
-    startH: parseInt(document.getElementById('start-hour').value),
-    span: parseInt(document.getElementById('span').value),
+    startH: sh,
+    startM: sm,
+    endH: eh,
+    endM: em,
+    totalMin: totalMin,
+    span: totalMin / 60, // 後方互換のため保持（小数になる場合あり）
+    tickStep: parseInt(document.getElementById('tick-step').value)||5,
     firstEvent: document.getElementById('first-event').value || '家に帰る',
     lastEvent: document.getElementById('last-event').value || 'ねる',
     mode: document.querySelector('input[name="imode"]:checked').value,
@@ -952,13 +1122,72 @@ function buildCfg() {
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return s.replace(/"/g,'&quot;'); }
 
+function cfgToHash(cfg){
+  try{
+    const json = JSON.stringify(cfg);
+    // TextEncoder → Base64
+    const bytes = new TextEncoder().encode(json);
+    let bin = '';
+    bytes.forEach(b => bin += String.fromCharCode(b));
+    return btoa(bin);
+  }catch(e){ return ''; }
+}
+
+function buildStudentUrl(cfg){
+  const hash = cfgToHash(cfg);
+  const base = location.href.replace(/\/admin\.html.*$/, '/index.html');
+  return base + '#' + hash;
+}
+
 function applySettings() {
   const cfg = buildCfg();
+  if(!cfg) return;
+  // localStorageにも保存（同一ブラウザ用）
   localStorage.setItem('jikan_cfg', JSON.stringify(cfg));
   autoSaveDraft();
-  // 児童画面リンクを表示
-  document.getElementById('student-link-card').style.display = 'flex';
-  showToast('✅ 設定を保存して児童画面に反映しました！');
+
+  // URLハッシュ方式
+  const url = buildStudentUrl(cfg);
+  document.getElementById('student-url').value = url;
+  document.getElementById('student-url-open').href = url;
+  document.getElementById('student-link-card').style.display = 'block';
+
+  // QRコード生成
+  generateQR(url);
+
+  showToast('✅ 設定を保存しました！URLをコピーして児童に渡してください');
+}
+
+function copyStudentUrl(){
+  const url = document.getElementById('student-url').value;
+  if(!url) return;
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast('📋 URLをコピーしました！');
+  }).catch(()=>{
+    // フォールバック
+    const inp = document.getElementById('student-url');
+    inp.select();
+    document.execCommand('copy');
+    showToast('📋 URLをコピーしました！');
+  });
+}
+
+let qrInstance = null;
+function generateQR(url){
+  const container = document.getElementById('qr-container');
+  container.innerHTML = '<canvas id="qr-canvas"></canvas>';
+  try{
+    if(typeof QRCode !== 'undefined'){
+      new QRCode(container, {
+        text: url,
+        width: 160, height: 160,
+        colorDark: '#1a2a3a', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+  }catch(e){
+    container.innerHTML = '<div style="font-size:11px;color:#888;padding:8px;">QRコードを生成できませんでした</div>';
+  }
 }
 
 function resetSettings() {
@@ -1034,8 +1263,16 @@ function applySlotCfg(cfg) {
   if (!cfg) return;
   if (cfg.pageTitle) document.getElementById('page-title').value = cfg.pageTitle;
   if (cfg.ampm)      document.getElementById('ampm').value = cfg.ampm;
-  if (cfg.startH)    document.getElementById('start-hour').value = cfg.startH;
-  if (cfg.span)      document.getElementById('span').value = cfg.span;
+  if (cfg.startH !== undefined) document.getElementById('start-hour').value = cfg.startH;
+  if (cfg.startM !== undefined) document.getElementById('start-min').value = cfg.startM;
+  if (cfg.endH !== undefined)   document.getElementById('end-hour').value = cfg.endH;
+  if (cfg.endM !== undefined)   document.getElementById('end-min').value = cfg.endM;
+  // 旧フォーマット(span)からの変換
+  if (cfg.endH === undefined && cfg.span) {
+    document.getElementById('end-hour').value = (cfg.startH||5) + Math.floor(cfg.span);
+    document.getElementById('end-min').value = 0;
+  }
+  if (cfg.tickStep) document.getElementById('tick-step').value = cfg.tickStep;
   if (cfg.firstEvent) document.getElementById('first-event').value = cfg.firstEvent;
   if (cfg.lastEvent)  document.getElementById('last-event').value = cfg.lastEvent;
   if (cfg.mode) document.querySelector(`input[name="imode"][value="${cfg.mode}"]`).checked = true;
@@ -1078,7 +1315,6 @@ function renderSlots() {
 // load existing
 function loadExisting() {
   try {
-    // まず下書きを復元、なければ jikan_cfg を読む
     const draftRaw = localStorage.getItem(DRAFT_KEY);
     const cfgRaw   = localStorage.getItem('jikan_cfg');
     const raw = draftRaw || cfgRaw;
@@ -1086,8 +1322,15 @@ function loadExisting() {
     const cfg = JSON.parse(raw);
     if (cfg.pageTitle) document.getElementById('page-title').value = cfg.pageTitle;
     if (cfg.ampm) document.getElementById('ampm').value = cfg.ampm;
-    if (cfg.startH) document.getElementById('start-hour').value = cfg.startH;
-    if (cfg.span) document.getElementById('span').value = cfg.span;
+    if (cfg.startH !== undefined) document.getElementById('start-hour').value = cfg.startH;
+    if (cfg.startM !== undefined) document.getElementById('start-min').value = cfg.startM;
+    if (cfg.endH !== undefined)   document.getElementById('end-hour').value = cfg.endH;
+    if (cfg.endM !== undefined)   document.getElementById('end-min').value = cfg.endM;
+    if (cfg.endH === undefined && cfg.span) {
+      document.getElementById('end-hour').value = (cfg.startH||5) + Math.floor(cfg.span);
+      document.getElementById('end-min').value = 0;
+    }
+    if (cfg.tickStep) document.getElementById('tick-step').value = cfg.tickStep;
     if (cfg.firstEvent) document.getElementById('first-event').value = cfg.firstEvent;
     if (cfg.lastEvent) document.getElementById('last-event').value = cfg.lastEvent;
     if (cfg.mode) document.querySelector(`input[name="imode"][value="${cfg.mode}"]`).checked = true;
@@ -1095,13 +1338,57 @@ function loadExisting() {
       items = cfg.schedules.map((v, i) => ({ id: i+1, v }));
       nid = items.length + 1;
     }
-    // jikan_cfg（反映済み）があればリンクを表示
     if (cfgRaw) {
       document.getElementById('student-link-card').style.display = 'flex';
     }
   } catch(e) {}
 }
 
+// ────────────────────────────────────────────────────────
+//  パスワード認証
+// ────────────────────────────────────────────────────────
+const ADMIN_PW_KEY = 'jikan_admin_pw';
+const DEFAULT_PW = '5678';
+
+function getAdminPw(){
+  return localStorage.getItem(ADMIN_PW_KEY) || DEFAULT_PW;
+}
+
+function checkPw(){
+  const input = document.getElementById('pw-input').value;
+  if(input === getAdminPw()){
+    document.getElementById('pw-screen').style.display = 'none';
+    sessionStorage.setItem('jikan_admin_auth','1');
+    document.getElementById('pw-input').value = '';
+  } else {
+    const err = document.getElementById('pw-error');
+    err.textContent = 'パスワードがちがいます';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+    setTimeout(()=>{ err.textContent=''; }, 2000);
+  }
+}
+
+function changePw(){
+  const p1 = document.getElementById('new-pw').value;
+  const p2 = document.getElementById('new-pw2').value;
+  if(!p1){ alert('パスワードを入力してください'); return; }
+  if(p1 !== p2){ alert('パスワードが一致しません'); return; }
+  if(p1.length < 4){ alert('4文字以上のパスワードを入力してください'); return; }
+  localStorage.setItem(ADMIN_PW_KEY, p1);
+  document.getElementById('new-pw').value = '';
+  document.getElementById('new-pw2').value = '';
+  showToast('🔑 パスワードを変更しました');
+}
+
+// セッション内認証済みならパスワード画面をスキップ
+if(sessionStorage.getItem('jikan_admin_auth') === '1'){
+  document.getElementById('pw-screen').style.display = 'none';
+} else {
+  setTimeout(()=> document.getElementById('pw-input').focus(), 100);
+}
+
+// ────────────────────────────────────────────────────────
 loadExisting();
 renderList();
 updatePreview();
