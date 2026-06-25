@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>じかんをしらべよう – 先生用管理画面</title>
+<link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #3b82c4;
+  --blue-light: #dbeeff;
+  --blue-dark: #1e4f87;
+  --orange: #e07430;
+  --orange-light: #fff0e6;
+  --green: #2e9e6b;
+  --red: #d94040;
+  --red-light: #ffeaea;
+  --bg: #eef3fa;
+  --white: #ffffff;
+  --gray: #c0ccd8;
+  --text: #1a2a3a;
+  --text-sub: #5a6a7a;
+  --shadow: 0 4px 20px rgba(30,79,135,0.13);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* HEADER */
+header {
+  background: linear-gradient(90deg, #0d2a50 0%, #1e4f87 100%);
+  padding: 14px 24px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 3px 14px rgba(13,42,80,0.3);
+}
+header .badge {
+  background: var(--orange); color: white;
+  font-size: 11px; font-weight: 900; padding: 3px 10px;
+  border-radius: 20px; letter-spacing: .06em;
+}
+header h1 {
+  font-family: 'Kaisei Decol', serif;
+  font-size: 20px; font-weight: 900; color: white;
+}
+header a {
+  margin-left: auto; color: rgba(255,255,255,0.75);
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  background: rgba(255,255,255,0.12); padding: 6px 14px;
+  border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.25);
+  transition: background .2s;
+}
+header a:hover { background: rgba(255,255,255,0.22); color: white; }
+
+/* MAIN */
+main {
+  max-width: 660px; margin: 0 auto;
+  padding: 28px 16px 60px;
+}
+
+/* SECTION */
+.section-label {
+  font-size: 11px; font-weight: 900; color: var(--blue-dark);
+  letter-spacing: .1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 12px; margin-top: 28px;
+}
+.section-label:first-child { margin-top: 0; }
+.section-label::before {
+  content: ''; width: 5px; height: 18px;
+  background: var(--orange); border-radius: 3px; display: block;
+}
+
+/* CARD */
+.card {
+  background: var(--white);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 22px 20px;
+}
+
+/* FORM ROWS */
+.form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+@media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 12px; font-weight: 700; color: var(--text-sub);
+  letter-spacing: .04em;
+}
+.field select, .field input[type=text], .field input[type=number] {
+  padding: 10px 14px;
+  border: 2px solid var(--gray); border-radius: 12px;
+  font-family: inherit; font-size: 15px; font-weight: 700;
+  color: var(--text); background: #f5f8fc; outline: none;
+  appearance: none; transition: border-color .2s;
+}
+.field select:focus, .field input:focus {
+  border-color: var(--blue); background: white;
+}
+
+/* MODE RADIO */
+.radio-group { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+.radio-label {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 14px; font-weight: 700; padding: 9px 16px;
+  border: 2px solid var(--gray); border-radius: 12px;
+  background: #f5f8fc; transition: all .2s; flex: 1;
+}
+.radio-label:has(input:checked) {
+  border-color: var(--blue); background: var(--blue-light); color: var(--blue-dark);
+}
+.radio-label input { accent-color: var(--blue); }
+
+/* SCHEDULE LIST */
+.schedule-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.schedule-item {
+  display: flex; align-items: center; gap: 10px;
+}
+.schedule-item .num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--blue-light); color: var(--blue-dark);
+  font-size: 13px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.schedule-item input {
+  flex: 1; padding: 8px 12px;
+  border: 2px solid var(--gray); border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  color: var(--text); background: #f5f8fc; outline: none;
+  transition: border-color .2s;
+}
+.schedule-item input:focus { border-color: var(--blue); background: white; }
+.del-btn {
+  background: var(--red-light); border: none; border-radius: 8px;
+  padding: 6px 10px; cursor: pointer; font-size: 14px;
+  color: var(--red); font-weight: 900; transition: background .2s;
+}
+.del-btn:hover { background: #ffd0d0; }
+
+.add-btn {
+  width: 100%; padding: 10px; margin-top: 10px;
+  border: 2px dashed var(--blue); border-radius: 12px;
+  background: rgba(59,130,196,0.06); color: var(--blue);
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+}
+.add-btn:hover { background: rgba(59,130,196,0.14); }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--bg); margin: 16px 0; }
+
+/* PREVIEW MINI */
+.preview-box {
+  background: var(--blue-light); border-radius: 12px;
+  padding: 12px 16px; margin-top: 16px;
+  font-size: 13px; font-weight: 700; color: var(--blue-dark);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.preview-row { display: flex; align-items: center; gap: 8px; }
+.preview-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--orange); flex-shrink: 0;
+}
+
+/* APPLY BTN */
+.apply-btn {
+  width: 100%; padding: 16px; margin-top: 8px;
+  border: none;
+  background: linear-gradient(135deg, #2e9e6b, #1a6b46);
+  color: white; border-radius: 16px;
+  font-family: inherit; font-size: 18px; font-weight: 900;
+  cursor: pointer; letter-spacing: .04em;
+  box-shadow: 0 6px 22px rgba(46,158,107,0.35);
+  transition: transform .15s, box-shadow .15s;
+}
+.apply-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(46,158,107,0.42); }
+.apply-btn:active { transform: none; }
+
+/* RESET BTN */
+.reset-btn {
+  width: 100%; padding: 12px; margin-top: 8px;
+  border: 2px solid var(--red); border-radius: 12px;
+  background: var(--red-light); color: var(--red);
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+}
+.reset-btn:hover { background: #ffd0d0; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: #1a2a3a; color: white;
+  padding: 12px 28px; border-radius: 40px;
+  font-size: 14px; font-weight: 700;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+  opacity: 0; z-index: 100;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* Student link */
+.student-link-card {
+  background: var(--orange-light);
+  border: 2px solid var(--orange);
+  border-radius: 14px; padding: 14px 18px;
+  margin-top: 16px; display: flex; align-items: center; gap: 12px;
+}
+.student-link-card a {
+  color: var(--orange); font-weight: 900; font-size: 14px;
+  text-decoration: none;
+}
+.student-link-card a:hover { text-decoration: underline; }
+.student-link-card .icon { font-size: 22px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">先生用</div>
+  <h1>じかんをしらべよう — 管理画面</h1>
+  <a href="index.html">→ 児童画面を見る</a>
+</header>
+
+<main>
+
+  <!-- TITLE SETTINGS -->
+  <div class="section-label">📝 タイトル設定</div>
+  <div class="card">
+    <div class="field">
+      <label>児童画面のタイトル</label>
+      <input type="text" id="page-title" value="じかんをしらべよう" placeholder="例: じかんをしらべよう">
+    </div>
+  </div>
+
+  <!-- TIME SETTINGS -->
+  <div class="section-label">⏰ 時刻設定</div>
+  <div class="card">
+    <div class="form-grid">
+      <div class="field">
+        <label>午前 / 午後</label>
+        <select id="ampm">
+          <option value="午前">午前</option>
+          <option value="午後" selected>午後</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>開始時刻（時）</label>
+        <select id="start-hour">
+          <option value="1">1時</option><option value="2">2時</option>
+          <option value="3">3時</option><option value="4">4時</option>
+          <option value="5" selected>5時</option><option value="6">6時</option>
+          <option value="7">7時</option><option value="8">8時</option>
+          <option value="9">9時</option><option value="10">10時</option>
+          <option value="11">11時</option><option value="12">12時</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>表示コマ数（時間）</label>
+        <select id="span">
+          <option value="2">2時間</option>
+          <option value="3">3時間</option>
+          <option value="4" selected>4時間</option>
+          <option value="5">5時間</option>
+          <option value="6">6時間</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>最初のイベント（矢印ラベル）</label>
+        <input type="text" id="first-event" value="家に帰る" placeholder="例: 家に帰る">
+      </div>
+      <div class="field">
+        <label>最後のイベント（矢印ラベル）</label>
+        <input type="text" id="last-event" value="ねる" placeholder="例: ねる">
+      </div>
+    </div>
+
+    <!-- preview -->
+    <div class="preview-box" id="preview-box">
+      <div class="preview-row"><div class="preview-dot"></div><span id="prev-text">午後5時 〜 午後9時（4時間）</span></div>
+    </div>
+  </div>
+
+  <!-- INPUT MODE -->
+  <div class="section-label">✏️ 児童の入力モード</div>
+  <div class="card">
+    <div class="radio-group">
+      <label class="radio-label">
+        <input type="radio" name="imode" value="select" checked id="mode-select"> 選択肢から選ぶ
+      </label>
+      <label class="radio-label">
+        <input type="radio" name="imode" value="free" id="mode-free"> 自由に入力する
+      </label>
+    </div>
+  </div>
+
+  <!-- SCHEDULES -->
+  <div class="section-label">📋 予定の選択肢</div>
+  <div class="card">
+    <p style="font-size:13px;color:var(--text-sub);font-weight:700;margin-bottom:14px;">
+      「選択肢から選ぶ」モードのとき、ここに入力した選択肢が表示されます。
+    </p>
+    <ul class="schedule-list" id="schedule-list"></ul>
+    <button class="add-btn" onclick="addItem()">＋ 予定を追加</button>
+  </div>
+
+  <!-- SLOT SAVE -->
+  <div class="section-label">💾 せってい保存スロット</div>
+  <div class="card">
+    <p style="font-size:13px;color:var(--text-sub);font-weight:700;margin-bottom:12px;">
+      最大5つの設定を名前をつけて保存できます。授業ごとに使い分けてください。
+    </p>
+    <div id="slots-container"></div>
+  </div>
+
+  <!-- APPLY -->
+  <div class="section-label">🚀 反映・書き出し</div>
+  <div class="card">
+    <!-- 設定保存前は非表示、保存後に表示 -->
+    <div class="student-link-card" id="student-link-card" style="display:none;">
+      <span class="icon">🧒</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-sub);margin-bottom:2px;">✅ 設定が反映されました！児童はこちらを開いてください</div>
+        <a href="index.html" target="_blank">index.html（児童画面）を開く →</a>
+      </div>
+    </div>
+    <button class="apply-btn" onclick="applySettings()">✅ 設定を保存して児童画面に反映する</button>
+
+    <div style="margin-top:16px;padding-top:16px;border-top:2px dashed #c0ccd8;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-sub);margin-bottom:10px;">
+        📴 オフラインで使う場合（ネット不要のHTMLファイルを書き出す）
+      </div>
+      <button class="apply-btn" style="background:linear-gradient(135deg,#1e5299,#0d2a54);" onclick="exportHTML()">
+        📥 児童用HTMLファイルを書き出す
+      </button>
+      <div style="font-size:11px;color:var(--text-sub);margin-top:8px;font-weight:700;">
+        ※ダウンロードされたHTMLファイルをiPadに転送して開くだけで使えます
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetSettings()">🗑️ 設定をリセット（児童画面を空白に戻す）</button>
+  </div>
+
+</main>
+
+<div class="toast" id="toast">✅ 設定を保存しました！</div>
+
+<script>
+let items = [
+  { id: 1, v: 'ごはんを食べる' },
+  { id: 2, v: 'テレビをみる' },
+  { id: 3, v: 'おふろに入る' },
+];
+let nid = 4;
+
+function renderList() {
+  const ul = document.getElementById('schedule-list');
+  ul.innerHTML = '';
+  items.forEach((item, i) => {
+    const li = document.createElement('li');
+    li.className = 'schedule-item';
+    li.innerHTML = `
+      <div class="num">${i+1}</div>
+      <input type="text" value="${escHtml(item.v)}"
+        oninput="items[${i}].v=this.value; autoSaveDraft()"
+        placeholder="よていをいれてください">
+      <button class="del-btn" onclick="delItem(${item.id})">✕</button>
+    `;
+    ul.appendChild(li);
+  });
+}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function addItem() {
+  items.push({ id: nid++, v: '' });
+  renderList();
+  // focus last
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.schedule-item input');
+    if (inputs.length) inputs[inputs.length-1].focus();
+  }, 50);
+}
+
+function delItem(id) {
+  items = items.filter(it => it.id !== id);
+  renderList();
+}
+
+// preview
+function updatePreview() {
+  const ampm = document.getElementById('ampm').value;
+  const sh = parseInt(document.getElementById('start-hour').value);
+  const span = parseInt(document.getElementById('span').value);
+  document.getElementById('prev-text').textContent =
+    `${ampm}${sh}時 〜 ${ampm}${sh+span}時（${span}時間）`;
+}
+['ampm','start-hour','span'].forEach(id => {
+  document.getElementById(id).addEventListener('change', updatePreview);
+});
+
+function exportHTML() {
+  const cfg = buildCfg();
+  if (!cfg) { alert('先に設定を入力してください'); return; }
+
+  const title = cfg.pageTitle || 'じかんをしらべよう';
+  const n = cfg.schedules.length || cfg.span;
+  const slotW = 1 / n;
+
+  // スタンドアロンHTML：設定をJSに直接埋め込み、localStorage不要に
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<title>${escAttr(title)}</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 1024px; height: 768px; overflow: hidden;
+  font-family: 'Hiragino Maru Gothic ProN', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+  background: #e8f2fb; color: #1a2a3a; user-select: none;
+}
+header {
+  height: 50px;
+  background: linear-gradient(90deg,#0d2a54,#1e5299);
+  display: flex; align-items: center; padding: 0 24px; gap: 14px;
+  box-shadow: 0 3px 12px rgba(13,42,84,.35);
+}
+header h1 { font-size:18px; font-weight:900; color:#fff; letter-spacing:.05em; flex-shrink:0; }
+.name-wrap { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.name-wrap label { font-size:13px; font-weight:700; color:rgba(255,255,255,.75); }
+.name-wrap input {
+  width:130px; padding:5px 11px; border-radius:8px;
+  border:2px solid rgba(255,255,255,.4); background:rgba(255,255,255,.15);
+  color:#fff; font-family:inherit; font-size:14px; font-weight:700; outline:none;
+}
+.name-wrap input::placeholder { color:rgba(255,255,255,.45); }
+.name-wrap input:focus { border-color:#fff; background:rgba(255,255,255,.25); }
+.done-btn {
+  padding:7px 22px; border:none; border-radius:10px;
+  background:#f0a030; color:#fff; font-family:inherit;
+  font-size:14px; font-weight:900; cursor:pointer;
+  box-shadow:0 3px 10px rgba(240,160,48,.4); transition:transform .1s;
+}
+.done-btn:active { transform:scale(.96); }
+#main {
+  width:1024px; height:718px;
+  padding:10px 28px 10px; display:flex; flex-direction:column; gap:8px;
+}
+.hint {
+  flex-shrink:0; background:#fffbe6; border:2px solid #f0c840;
+  border-radius:10px; padding:5px 14px; font-size:12px;
+  font-weight:700; color:#7a5000; display:flex; align-items:center; gap:8px;
+}
+.hint .step {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:18px; height:18px; border-radius:50%; background:#f0c840;
+  color:#7a5000; font-size:11px; font-weight:900; flex-shrink:0;
+}
+.main-card {
+  flex:1; background:#fff; border-radius:18px;
+  box-shadow:0 4px 24px rgba(30,82,153,.13);
+  overflow:visible; display:flex; flex-direction:column; position:relative;
+}
+#scene-wrap { flex-shrink:0; position:relative; }
+#scene-svg { display:block; }
+.inputs-row {
+  flex:1; min-height:90px;
+  border-top:2px solid #e8f0f8; background:#f5f9ff; position:relative; overflow:hidden;
+}
+.inp-group {
+  position:absolute; display:flex; flex-direction:column;
+  align-items:center; gap:1px; top:4px; overflow:hidden;
+}
+.inp-ampm select.ampm-sel {
+  border:1.5px solid #e07430; border-radius:4px; padding:1px 2px;
+  font-family:inherit; font-size:10px; font-weight:900;
+  color:#1a2a3a; background:#fff4ea; outline:none; width:100%; text-align:center;
+}
+.inp-time-row { display:flex; align-items:center; gap:1px; width:100%; justify-content:center; flex-wrap:nowrap; }
+.inp-time-row input {
+  width:22px; min-width:0; text-align:center;
+  border:1.5px solid #e07430; border-radius:4px; padding:1px 1px;
+  font-family:inherit; font-size:10px; font-weight:900;
+  color:#1a2a3a; background:#fff4ea; outline:none; -moz-appearance:textfield;
+}
+.inp-time-row input::-webkit-inner-spin-button,
+.inp-time-row input::-webkit-outer-spin-button { -webkit-appearance:none; }
+.inp-time-row input:focus { border-color:#b05000; background:#fff; }
+.inp-time-row .u { font-size:10px; font-weight:900; color:#1a2a3a; white-space:nowrap; flex-shrink:0; }
+.inp-made { font-size:9px; font-weight:900; color:#e07430; line-height:1; }
+.inp-plan { width:100%; }
+.inp-plan select, .inp-plan input[type=text] {
+  border:1.5px solid #3b82c4; border-radius:4px; padding:1px 3px;
+  font-family:inherit; font-size:9px; font-weight:700;
+  color:#1a2a3a; background:#dbeeff; outline:none; width:100%; max-width:100%;
+}
+.inp-plan select:focus, .inp-plan input:focus { border-color:#1040a0; background:#fff; }
+.evt-label {
+  position:absolute; display:flex; flex-direction:column;
+  align-items:center; transform:translateX(-50%); top:8px;
+}
+.evt-label .arr { width:2px; height:12px; background:#3b82c4; margin:0 auto; }
+.evt-label .arrh {
+  width:0; height:0; border-left:5px solid transparent;
+  border-right:5px solid transparent; border-bottom:7px solid #3b82c4; margin:0 auto 2px;
+}
+.evt-label .nm { font-size:11px; font-weight:900; color:#1e4f87; white-space:nowrap; text-align:center; line-height:1.25; }
+.drag-h {
+  position:absolute;
+  touch-action:none; cursor:col-resize; transform:translate(-50%,-50%);
+  display:flex; align-items:center; justify-content:center; z-index:30;
+}
+.drag-h-end { width:40px; height:40px; }
+.drag-h-start { width:34px; height:46px; }
+.drag-h .visual {
+  border-radius:50%; background:#e07430; border:3px solid #fff;
+  box-shadow:0 2px 8px rgba(224,116,48,.6); opacity:0.75; pointer-events:none;
+}
+.drag-h:hover .visual, .drag-h:active .visual { background:#f59030; opacity:0.95; }
+.drag-h-end .visual { width:22px; height:22px; }
+.drag-h-start .visual { width:10px; height:26px; border-radius:4px; }
+.hand-tip {
+  position:absolute; width:24px; height:24px; border-radius:50%;
+  transform:translate(-50%,-50%); cursor:grab; touch-action:none; z-index:40;
+  background:rgba(255,255,255,0);
+}
+.hand-tip:active { cursor:grabbing; }
+.modal-bg {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.45); z-index:200; align-items:center; justify-content:center;
+}
+.modal-bg.show { display:flex; }
+.modal-card {
+  background:#fff; border-radius:22px; padding:30px 26px; max-width:350px;
+  width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.22);
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.reset-btn{padding:7px 18px;border:1.5px solid rgba(255,255,255,.4);border-radius:10px;background:rgba(255,255,255,.18);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.modal-card h2{font-size:26px;font-weight:900;color:#2e9e6b;margin-bottom:8px;}
+.modal-card p{font-size:14px;color:#607080;margin-bottom:20px;line-height:1.6;}
+.modal-close{padding:10px 32px;border:none;background:#3b82c4;color:#fff;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<header>
+  <h1>⏰ ${escHtml(title)}</h1>
+  <div class="name-wrap">
+    <label>なまえ：</label>
+    <input type="text" id="s-name" placeholder="なまえをいれてね" oninput="autoSave()">
+  </div>
+  <button class="reset-btn" onclick="resetWork()">🔄 さいしょにもどる</button>
+  <button class="done-btn" onclick="submitWork()">🌟 かんせい！</button>
+</header>
+<div id="main">
+  <div class="hint">
+    <span class="step">1</span> オレンジのハンドルをドラッグしてやじるしをうごかそう
+    <span class="step" style="margin-left:10px">2</span> やじるしのおわりのとけいのはりをうごかしてじこくをあわせよう
+    <span class="step" style="margin-left:10px">3</span> なんぷんかと、よていをかこう
+  </div>
+  <div class="main-card">
+    <div id="scene-wrap"></div>
+    <div class="inputs-row" id="inputs-row"></div>
+  </div>
+</div>
+<div class="modal-bg" id="modal">
+  <div class="modal-card">
+    <h2>🎉 よくできました！</h2>
+    <p id="modal-msg"></p>
+    <button class="modal-close" onclick="closeModal()">とじる</button>
+  </div>
+</div>
+<div class="modal-bg" id="reset-modal">
+  <div class="modal-card">
+    <h2 style="color:#e07430;">🔄 もどしますか？</h2>
+    <p>いままでのこたえがぜんぶきえます。<br>さいしょからやりなおしますか？</p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="modal-close" style="background:#e07430;" onclick="confirmReset()">さいしょにもどる</button>
+      <button class="modal-close" style="background:#aaa;" onclick="document.getElementById('reset-modal').classList.remove('show')">やめる</button>
+    </div>
+  </div>
+</div>
+<script>
+'use strict';
+// ── 設定（埋め込み済み） ──
+const cfg = ${JSON.stringify(cfg)};
+
+// ── レイアウト定数 ──
+const PAD_L=28,PAD_R=28,CLOCK_R=44,CLOCK_GAP=30;
+const LINE_Y=CLOCK_R*2+CLOCK_GAP+36;
+const CLOCK_CY=CLOCK_R+10;
+const SVG_H=LINE_Y+28;
+const NS='http://www.w3.org/2000/svg';
+
+function getHAngle(h,m){ return((h%12)*30+m*0.5)*Math.PI/180; }
+function getMAngle(m){ return m*6*Math.PI/180; }
+
+const n=(cfg.schedules&&cfg.schedules.length)?cfg.schedules.length:cfg.span;
+const slotW=1/n;
+let segStates=Array.from({length:n},(_,i)=>({
+  s:i*slotW+slotW*0.05, e:i*slotW+slotW*0.7,
+  clockH:0, clockM:0, hAngle:getHAngle(0,0), mAngle:getMAngle(0)
+}));
+
+function svgW(){ const w=document.getElementById('scene-wrap'); return w?w.offsetWidth:900; }
+function innerW(){ return svgW()-PAD_L-PAD_R; }
+function fracToX(f){ return PAD_L+f*innerW(); }
+function xToFrac(x){ return(x-PAD_L)/innerW(); }
+function clientToSvgX(cx){ const w=document.getElementById('scene-wrap'); return cx-w.getBoundingClientRect().left; }
+function clientToAngle(cx,cy,cxS,cyS){ const w=document.getElementById('scene-wrap');const r=w.getBoundingClientRect();const lx=cx-r.left,ly=cy-r.top;let a=Math.atan2(lx-cxS,-(ly-cyS));if(a<0)a+=2*Math.PI;return a; }
+let clockCenters=[];
+function arrowEndX(idx){ return fracToX(segStates[idx].e); }
+function computeClockCenters(){
+  const n=segStates.length;
+  const raw=segStates.map((_,i)=>arrowEndX(i));
+  const minSep=CLOCK_R*2+6;
+  const minX=PAD_L+CLOCK_R, maxX=PAD_L+innerW()-CLOCK_R;
+  const order=raw.map((_,i)=>i).sort((a,b)=>raw[a]-raw[b]);
+  let pos=raw.slice();
+  const pushRight=()=>{
+    for(let k=1;k<n;k++){ const i=order[k],prev=order[k-1]; if(pos[i]-pos[prev]<minSep) pos[i]=pos[prev]+minSep; }
+  };
+  pushRight();
+  const firstI=order[0];
+  if(pos[firstI]<minX){ pos[firstI]=minX; pushRight(); }
+  const lastI=order[n-1];
+  if(pos[lastI]>maxX){
+    pos[lastI]=maxX;
+    for(let k=n-2;k>=0;k--){ const i=order[k],next=order[k+1]; if(pos[next]-pos[i]<minSep) pos[i]=pos[next]-minSep; }
+  }
+  clockCenters=pos;
+}
+function clockCX(idx){ return clockCenters[idx]!==undefined?clockCenters[idx]:arrowEndX(idx); }
+const CY=CLOCK_CY;
+function arrowY(){ return LINE_Y-14; }
+
+function render(){ renderSVG(); renderHandles(); renderInputs(); }
+
+function renderHandles(){
+  const wrap=document.getElementById('scene-wrap');
+  wrap.querySelectorAll('.drag-h').forEach(h=>h.remove());
+  segStates.forEach((seg,idx)=>{
+    const hS=document.createElement('div');hS.className='drag-h drag-h-start';hS.id='hs'+idx;hS.style.top=LINE_Y+'px';hS.style.left=fracToX(seg.s)+'px';hS.style.zIndex='31';hS.appendChild(Object.assign(document.createElement('div'),{className:'visual'}));wrap.appendChild(hS);bindArrowDrag(hS,idx,'s');
+    const hE=document.createElement('div');hE.className='drag-h drag-h-end';hE.id='he'+idx;hE.style.top=LINE_Y+'px';hE.style.left=fracToX(seg.e)+'px';hE.appendChild(Object.assign(document.createElement('div'),{className:'visual'}));wrap.appendChild(hE);bindArrowDrag(hE,idx,'e');
+  });
+}
+function updateHandlePos(idx){
+  const seg=segStates[idx];
+  const hs=document.getElementById('hs'+idx),he=document.getElementById('he'+idx);
+  if(hs){hs.style.left=fracToX(seg.s)+'px';hs.style.top=LINE_Y+'px';}
+  if(he){he.style.left=fracToX(seg.e)+'px';he.style.top=LINE_Y+'px';}
+}
+function updateAllHandlePositions(){ segStates.forEach((_,i)=>updateHandlePos(i)); }
+function updateAllInputGroupPos(){ segStates.forEach((_,i)=>updateInputGroupPos(i)); }
+function applyArrowDrag(idx,which,nf){
+  const work=segStates.map(s=>({...s}));
+  const self=work[idx];
+  const dir=nf-self[which];
+  if(dir===0) return null;
+  self[which]=nf;
+  if(dir>0){
+    let prevMax=Math.max(self.s,self.e);
+    for(let i=idx+1;i<work.length;i++){
+      const segMin=Math.min(work[i].s,work[i].e);
+      if(segMin<prevMax){ const push=prevMax-segMin; work[i].s+=push; work[i].e+=push; }
+      prevMax=Math.max(work[i].s,work[i].e);
+    }
+    if(prevMax>1+1e-9) return null;
+  } else {
+    let nextMin=Math.min(self.s,self.e);
+    for(let i=idx-1;i>=0;i--){
+      const segMax=Math.max(work[i].s,work[i].e);
+      if(segMax>nextMin){ const push=segMax-nextMin; work[i].s-=push; work[i].e-=push; }
+      nextMin=Math.min(work[i].s,work[i].e);
+    }
+    if(nextMin<-1e-9) return null;
+  }
+  work.forEach(s=>{ s.s=Math.min(1,Math.max(0,s.s)); s.e=Math.min(1,Math.max(0,s.e)); });
+  return work;
+}
+function bindArrowDrag(handle,idx,which){
+  let dragging=false;
+  const onStart=e=>{dragging=true;window.addEventListener('mousemove',onMove);window.addEventListener('touchmove',onMove,{passive:false});window.addEventListener('mouseup',onEnd);window.addEventListener('touchend',onEnd);e.preventDefault();};
+  const onMove=e=>{
+    if(!dragging)return;
+    const cx=(e.touches?e.touches[0]:e).clientX;
+    const svgX=clientToSvgX(cx);
+    const totalSnaps=12*cfg.span;
+    let nf=Math.max(0,Math.min(1,xToFrac(svgX)));nf=Math.round(nf*totalSnaps)/totalSnaps;
+    if(nf===segStates[idx][which]){ e.preventDefault(); return; }
+    const result=applyArrowDrag(idx,which,nf);
+    if(!result){ e.preventDefault(); return; }
+    segStates=result;
+    updateAllHandlePositions();drawArrows();redrawAllClocks();updateAllInputGroupPos();e.preventDefault();
+  };
+  const onEnd=()=>{dragging=false;window.removeEventListener('mousemove',onMove);window.removeEventListener('touchmove',onMove);window.removeEventListener('mouseup',onEnd);window.removeEventListener('touchend',onEnd);autoSave();};
+  handle.addEventListener('mousedown',onStart);handle.addEventListener('touchstart',onStart,{passive:false});
+}
+
+function handTipPos(idx,which){
+  const seg=segStates[idx],cx=clockCX(idx),cy=CY,r=CLOCK_R;
+  const angle=which==='h'?seg.hAngle:seg.mAngle,len=which==='h'?r*0.52:r*0.72;
+  return{x:cx+len*Math.cos(angle-Math.PI/2),y:cy+len*Math.sin(angle-Math.PI/2)};
+}
+function repositionHandTips(){
+  const wrap=document.getElementById('scene-wrap');
+  segStates.forEach((_,idx)=>{
+    ['h','m'].forEach(which=>{
+      const id='htip-'+idx+'-'+which;
+      let tip=document.getElementById(id);
+      if(!tip){tip=document.createElement('div');tip.className='hand-tip';tip.id=id;wrap.appendChild(tip);bindHandDrag(tip,idx,which);}
+      const{x,y}=handTipPos(idx,which);tip.style.left=x+'px';tip.style.top=y+'px';
+    });
+  });
+}
+function bindHandDrag(tip,idx,which){
+  let prevM=null;
+  const onStart=e=>{prevM=segStates[idx].clockM;window.addEventListener('mousemove',onMove);window.addEventListener('touchmove',onMove,{passive:false});window.addEventListener('mouseup',onEnd);window.addEventListener('touchend',onEnd);e.preventDefault();};
+  const onMove=e=>{
+    const cx=(e.touches?e.touches[0]:e).clientX,cy2=(e.touches?e.touches[0]:e).clientY;
+    const angle=clientToAngle(cx,cy2,clockCX(idx),CY);
+    const deg=angle*180/Math.PI;
+    if(which==='m'){
+      const rawMin=(deg/360)*60,snapped=Math.round(rawMin/5)*5,newM=snapped>=60?0:snapped;
+      if(prevM!==null){const diff=newM-prevM;if(diff<-30)segStates[idx].clockH=(segStates[idx].clockH+1)%12;else if(diff>30)segStates[idx].clockH=(segStates[idx].clockH+11)%12;}
+      prevM=newM;segStates[idx].clockM=newM;segStates[idx].mAngle=getMAngle(newM);segStates[idx].hAngle=getHAngle(segStates[idx].clockH,newM);
+    }else{const newH=Math.round(deg/30)%12;segStates[idx].clockH=newH;segStates[idx].hAngle=getHAngle(newH,segStates[idx].clockM);}
+    redrawClock(idx);repositionHandTips();e.preventDefault();
+  };
+  const onEnd=()=>{prevM=null;window.removeEventListener('mousemove',onMove);window.removeEventListener('touchmove',onMove);window.removeEventListener('mouseup',onEnd);window.removeEventListener('touchend',onEnd);};
+  tip.addEventListener('mousedown',onStart);tip.addEventListener('touchstart',onStart,{passive:false});
+}
+function cleanupFloating(){const w=document.getElementById('scene-wrap');if(w)w.querySelectorAll('.drag-h,.hand-tip').forEach(e=>e.remove());}
+
+function renderSVG(){
+  const wrap=document.getElementById('scene-wrap');
+  const W=svgW();
+  const old=document.getElementById('scene-svg'); if(old)old.remove();
+  const svg=document.createElementNS(NS,'svg');
+  svg.id='scene-svg'; svg.setAttribute('width',W); svg.setAttribute('height',SVG_H);
+  svg.style.display='block'; svg.style.overflow='visible';
+  wrap.style.height=SVG_H+'px';
+  const defs=document.createElementNS(NS,'defs');
+  { const m=document.createElementNS(NS,'marker');
+    m.setAttribute('id','ahEnd');m.setAttribute('markerWidth','10');m.setAttribute('markerHeight','7');
+    m.setAttribute('refX','9');m.setAttribute('refY','3.5');m.setAttribute('orient','auto');
+    const p=document.createElementNS(NS,'polygon');p.setAttribute('points','0 0,10 3.5,0 7');p.setAttribute('fill','#e07430');
+    m.appendChild(p);defs.appendChild(m); }
+  svg.appendChild(defs);
+  svg.appendChild(el('line',{x1:PAD_L,y1:LINE_Y,x2:PAD_L+innerW(),y2:LINE_Y,stroke:'#1a2a3a','stroke-width':5,'stroke-linecap':'round'}));
+  const totalMins=cfg.span*60;
+  for(let m=0;m<=totalMins;m+=5){
+    const x=PAD_L+(m/totalMins)*innerW();
+    const isH=m%60===0,isHalf=m%30===0&&!isH,isTen=m%10===0&&!isH&&!isHalf;
+    const len=isH?14:isHalf?9:isTen?6:4;
+    svg.appendChild(el('line',{x1:x,y1:LINE_Y-len,x2:x,y2:LINE_Y+len,
+      stroke:isH?'#1a2a3a':isTen||isHalf?'#9ab0c8':'#c8d8e8',
+      'stroke-width':isH?3:isHalf||isTen?1.5:1,'stroke-linecap':'round'}));
+  }
+  for(let i=0;i<=cfg.span;i++){
+    const x=fracToX(i/cfg.span);
+    const h24=cfg.startH+i;
+    let label;
+    if(h24<12) label=(i===0?cfg.ampm:'午前')+h24+'時';
+    else if(h24===12) label='午後12時';
+    else label='午後'+(h24-12)+'時';
+    if(i>0){const prevH24=cfg.startH+i-1;const prevAMPM=prevH24<12?'午前':'午後';const curAMPM=h24<12?'午前':'午後';if(prevAMPM===curAMPM){label=(h24===12?12:h24<12?h24:h24-12)+'時';}}
+    const t=el('text',{x,y:LINE_Y-20,'text-anchor':'middle','dominant-baseline':'auto','font-size':13,'font-weight':900,fill:'#1e4f87'});
+    t.textContent=label;
+    svg.appendChild(t);
+  }
+  fixedTick(svg,fracToX(0)); fixedTick(svg,fracToX(1));
+  const ag=document.createElementNS(NS,'g'); ag.id='arrow-g'; svg.appendChild(ag);
+  segStates.forEach((_,idx)=>{ const g=document.createElementNS(NS,'g');g.id='clk-g'+idx;svg.appendChild(g); });
+  wrap.appendChild(svg);
+  drawArrows(); redrawAllClocks();
+}
+function fixedTick(svg,x){
+  svg.appendChild(el('line',{x1:x,y1:LINE_Y+4,x2:x,y2:LINE_Y+16,stroke:'#3b82c4','stroke-width':2.5,'stroke-linecap':'round'}));
+}
+function drawArrows(){
+  const ag=document.getElementById('arrow-g'); if(!ag)return;
+  while(ag.firstChild)ag.removeChild(ag.firstChild);
+  const ay=arrowY();
+  segStates.forEach(seg=>{
+    const x1=fracToX(seg.s),x2=fracToX(seg.e); if(Math.abs(x2-x1)<6)return;
+    ag.appendChild(el('line',{x1,y1:ay,x2,y2:ay,stroke:'#e07430','stroke-width':3.5,'stroke-linecap':'round','marker-end':'url(#ahEnd)',opacity:'0.55'}));
+  });
+}
+function redrawAllClocks(){ computeClockCenters(); segStates.forEach((_,idx)=>redrawClock(idx)); repositionHandTips(); }
+function redrawClock(idx){
+  const g=document.getElementById('clk-g'+idx); if(!g)return;
+  while(g.firstChild)g.removeChild(g.firstChild);
+  const seg=segStates[idx],cx=clockCX(idx),cy=CY,r=CLOCK_R;
+  g.appendChild(el('circle',{cx,cy,r,fill:'white',stroke:'#3b82c4','stroke-width':2.5}));
+  g.appendChild(el('circle',{cx,cy,r:r-2,fill:'#f5f9ff'}));
+  for(let i=0;i<60;i++){
+    const a=(i*6-90)*Math.PI/180,isH=i%5===0,r1=isH?r*0.78:r*0.88,r2=r*0.95;
+    g.appendChild(el('line',{x1:(cx+r1*Math.cos(a)).toFixed(1),y1:(cy+r1*Math.sin(a)).toFixed(1),x2:(cx+r2*Math.cos(a)).toFixed(1),y2:(cy+r2*Math.sin(a)).toFixed(1),stroke:isH?'#4a6080':'#b0c8d8','stroke-width':isH?1.8:1,'stroke-linecap':'round'}));
+  }
+  [12,1,2,3,4,5,6,7,8,9,10,11].forEach((num,i)=>{
+    const a=(i*30-90)*Math.PI/180,nr=r*0.64;
+    const t=el('text',{x:(cx+nr*Math.cos(a)).toFixed(1),y:(cy+nr*Math.sin(a)).toFixed(1),'text-anchor':'middle','dominant-baseline':'central',fill:'#1a2a3a','font-size':(r*0.27).toFixed(1),'font-weight':700});
+    t.textContent=num; g.appendChild(t);
+  });
+  const hLen=r*0.52,hx=(cx+hLen*Math.cos(seg.hAngle-Math.PI/2)).toFixed(1),hy=(cy+hLen*Math.sin(seg.hAngle-Math.PI/2)).toFixed(1);
+  g.appendChild(el('line',{x1:cx,y1:cy,x2:hx,y2:hy,stroke:'#1e4f87','stroke-width':4,'stroke-linecap':'round'}));
+  const mLen=r*0.72,mx=(cx+mLen*Math.cos(seg.mAngle-Math.PI/2)).toFixed(1),my=(cy+mLen*Math.sin(seg.mAngle-Math.PI/2)).toFixed(1);
+  g.appendChild(el('line',{x1:cx,y1:cy,x2:mx,y2:my,stroke:'#1e4f87','stroke-width':2.5,'stroke-linecap':'round'}));
+  g.appendChild(el('circle',{cx,cy,r:3.5,fill:'#1e4f87'}));
+  const endX=arrowEndX(idx),endY=arrowY();
+  const dx=endX-cx,dy=endY-cy,dist=Math.sqrt(dx*dx+dy*dy)||1;
+  const edgeX=(cx+(dx/dist)*r).toFixed(1),edgeY=(cy+(dy/dist)*r).toFixed(1);
+  g.appendChild(el('line',{x1:endX,y1:endY,x2:edgeX,y2:edgeY,stroke:'#e07430','stroke-width':1.5,'stroke-dasharray':'4 3',opacity:0.6}));
+}
+function renderInputs(){
+  const row=document.getElementById('inputs-row');row.innerHTML='';
+  addEvtLabel(row,fracToX(0),cfg.firstEvent);addEvtLabel(row,fracToX(1),cfg.lastEvent);
+  const PAD=4;
+  segStates.forEach((seg,idx)=>{
+    const x1=Math.min(fracToX(seg.s),fracToX(seg.e)),x2=Math.max(fracToX(seg.s),fracToX(seg.e));
+    const groupW=Math.max(60,x2-x1-PAD*2);
+    const g=document.createElement('div');
+    g.className='inp-group';g.id='ig'+idx;
+    g.style.left=(x1+PAD)+'px';g.style.width=groupW+'px';g.style.top='6px';
+    const ampmDiv=document.createElement('div');ampmDiv.className='inp-ampm';
+    const ampmSel=document.createElement('select');ampmSel.id='ampm'+idx;ampmSel.className='ampm-sel';
+    ['午前','午後'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;ampmSel.appendChild(o);});
+    ampmSel.value=cfg.ampm;ampmSel.addEventListener('change',autoSave);
+    ampmDiv.appendChild(ampmSel);
+    const tRow=document.createElement('div');tRow.className='inp-time-row';
+    const hInp=document.createElement('input');hInp.type='number';hInp.min=1;hInp.max=12;hInp.id='th'+idx;hInp.placeholder='?';hInp.addEventListener('input',autoSave);
+    const hUnit=document.createElement('span');hUnit.className='u';hUnit.textContent='時';
+    const mInp=document.createElement('input');mInp.type='number';mInp.min=0;mInp.max=59;mInp.id='tm'+idx;mInp.placeholder='?';mInp.addEventListener('input',autoSave);
+    const mUnit=document.createElement('span');mUnit.className='u';mUnit.textContent='分';
+    tRow.appendChild(hInp);tRow.appendChild(hUnit);tRow.appendChild(mInp);tRow.appendChild(mUnit);
+    const madeDiv=document.createElement('div');madeDiv.className='inp-made';madeDiv.textContent='まで';
+    const pd=document.createElement('div');pd.className='inp-plan';let pe;
+    if(cfg.mode==='select'&&cfg.schedules&&cfg.schedules.length){
+      pe=document.createElement('select');pe.id='pi'+idx;
+      const o0=document.createElement('option');o0.value='';o0.textContent='よていをえらぶ';pe.appendChild(o0);
+      cfg.schedules.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;pe.appendChild(o);});
+    }else{
+      pe=document.createElement('input');pe.type='text';pe.id='pi'+idx;pe.placeholder='よていをかこう';
+    }
+    pe.addEventListener(pe.tagName==='SELECT'?'change':'input',autoSave);
+    pd.appendChild(pe);g.appendChild(ampmDiv);g.appendChild(tRow);g.appendChild(madeDiv);g.appendChild(pd);row.appendChild(g);
+  });
+}
+function addEvtLabel(row,x,name){
+  const d=document.createElement('div');d.className='evt-label';d.style.left=x+'px';
+  d.innerHTML='<div class="arrh"></div><div class="arr"></div><div class="nm">'+name.split('').join('<br>')+'</div>';
+  row.appendChild(d);
+}
+function updateInputGroupPos(idx){
+  const g=document.getElementById('ig'+idx);if(!g)return;
+  const PAD=4,seg=segStates[idx];
+  const x1=Math.min(fracToX(seg.s),fracToX(seg.e)),x2=Math.max(fracToX(seg.s),fracToX(seg.e));
+  g.style.left=(x1+PAD)+'px';
+  g.style.width=Math.max(60,x2-x1-PAD*2)+'px';
+}
+function el(tag,attrs){
+  const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e;
+}
+const SAVE_KEY='jikan_student_save';
+function autoSave(){
+  try{
+    const data={name:document.getElementById('s-name').value,segStates:segStates.map(s=>({...s})),
+      inputs:segStates.map((_,i)=>({ampm:(document.getElementById('ampm'+i)?.value)||'',th:(document.getElementById('th'+i)?.value)||'',tm:(document.getElementById('tm'+i)?.value)||'',plan:(document.getElementById('pi'+i)?.value)||''}))};
+    localStorage.setItem(SAVE_KEY,JSON.stringify(data));
+  }catch(e){}
+}
+function restoreSave(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
+    const data=JSON.parse(raw);if(!data||!data.segStates||data.segStates.length!==segStates.length)return false;
+    if(data.name)document.getElementById('s-name').value=data.name;
+    data.segStates.forEach((s,i)=>{segStates[i]={...segStates[i],...s};});
+    return data.inputs||[];
+  }catch(e){return false;}
+}
+function applySavedInputs(inputs){
+  if(!inputs)return;
+  inputs.forEach((inp,i)=>{
+    const am=document.getElementById('ampm'+i),th=document.getElementById('th'+i),tm=document.getElementById('tm'+i),pi=document.getElementById('pi'+i);
+    if(am&&inp.ampm)am.value=inp.ampm;if(th&&inp.th)th.value=inp.th;if(tm&&inp.tm)tm.value=inp.tm;if(pi&&inp.plan)pi.value=inp.plan;
+  });
+}
+function resetWork(){ document.getElementById('reset-modal').classList.add('show'); }
+function confirmReset(){
+  document.getElementById('reset-modal').classList.remove('show');
+  localStorage.removeItem(SAVE_KEY);
+  const n=segStates.length,slotW=1/n;
+  segStates=Array.from({length:n},(_,i)=>({s:i*slotW+slotW*0.05,e:i*slotW+slotW*0.7,clockH:0,clockM:0,hAngle:getHAngle(0,0),mAngle:getMAngle(0)}));
+  document.getElementById('s-name').value='';
+  document.querySelectorAll('.drag-h,.hand-tip').forEach(e=>e.remove());
+  render();
+}
+function submitWork(){
+  const name=document.getElementById('s-name').value.trim();if(!name){alert('なまえをいれてね！');return;}
+  let ok=true;for(let i=0;i<segStates.length;i++){const th=document.getElementById('th'+i),tm=document.getElementById('tm'+i),pi=document.getElementById('pi'+i);if(!th||!th.value||!tm||!tm.value||!pi||!pi.value){ok=false;break;}}
+  autoSave();
+  document.getElementById('modal-msg').textContent=ok?name+'さん、ぜんぶできたね！すばらしい！🎊':name+'さん、よくできました！まだあいているところがあるよ！';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+function cleanupFloating(){ document.querySelectorAll('.drag-h,.hand-tip').forEach(e=>e.remove()); }
+window.addEventListener('load',()=>{
+  const saved=restoreSave();
+  render();
+  if(saved)applySavedInputs(saved);
+  window.addEventListener('resize',()=>{cleanupFloating();render();});
+});
+<\/script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (title || 'jikan') + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 HTMLファイルを書き出しました！');
+}
+
+function buildCfg() {
+  return {
+    pageTitle: document.getElementById('page-title').value || 'じかんをしらべよう',
+    ampm: document.getElementById('ampm').value,
+    startH: parseInt(document.getElementById('start-hour').value),
+    span: parseInt(document.getElementById('span').value),
+    firstEvent: document.getElementById('first-event').value || '家に帰る',
+    lastEvent: document.getElementById('last-event').value || 'ねる',
+    mode: document.querySelector('input[name="imode"]:checked').value,
+    schedules: items.map(it => it.v).filter(Boolean),
+  };
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return s.replace(/"/g,'&quot;'); }
+
+function applySettings() {
+  const cfg = buildCfg();
+  localStorage.setItem('jikan_cfg', JSON.stringify(cfg));
+  autoSaveDraft();
+  // 児童画面リンクを表示
+  document.getElementById('student-link-card').style.display = 'flex';
+  showToast('✅ 設定を保存して児童画面に反映しました！');
+}
+
+function resetSettings() {
+  if (!confirm('設定をリセットすると児童画面が空白に戻ります。よいですか？')) return;
+  localStorage.removeItem('jikan_cfg');
+  document.getElementById('student-link-card').style.display = 'none';
+  showToast('🗑️ リセットしました');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── 自動保存（下書き）──
+const DRAFT_KEY = 'jikan_admin_draft';
+
+function autoSaveDraft() {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(buildCfg()));
+  } catch(e) {}
+}
+
+// 各入力フィールドの変更を監視して自動保存
+function bindAutoSave() {
+  const ids = ['page-title','ampm','start-hour','span','first-event','last-event'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', autoSaveDraft);
+    if (el) el.addEventListener('input',  autoSaveDraft);
+  });
+  document.querySelectorAll('input[name="imode"]').forEach(r =>
+    r.addEventListener('change', autoSaveDraft)
+  );
+}
+
+// ── スロット保存 ──
+const SLOT_KEY = 'jikan_admin_slots';
+let slots = {}; // { "1": {label, cfg}, ... }
+
+function loadSlots() {
+  try { slots = JSON.parse(localStorage.getItem(SLOT_KEY)) || {}; } catch(e) { slots = {}; }
+  renderSlots();
+}
+
+function saveToSlot(num) {
+  const label = prompt(`スロット${num}の名前を入力してください（例：2年1組 月曜日）`, slots[num]?.label || '');
+  if (label === null) return; // キャンセル
+  slots[num] = { label: label || `スロット${num}`, cfg: buildCfg() };
+  localStorage.setItem(SLOT_KEY, JSON.stringify(slots));
+  renderSlots();
+  showToast(`💾 スロット${num}に保存しました`);
+}
+
+function loadFromSlot(num) {
+  if (!slots[num]) return;
+  if (!confirm(`スロット${num}「${slots[num].label}」を読み込みますか？\n現在の入力内容は上書きされます。`)) return;
+  applySlotCfg(slots[num].cfg);
+  showToast(`📂 スロット${num}を読み込みました`);
+}
+
+function deleteSlot(num) {
+  if (!confirm(`スロット${num}「${slots[num]?.label}」を削除しますか？`)) return;
+  delete slots[num];
+  localStorage.setItem(SLOT_KEY, JSON.stringify(slots));
+  renderSlots();
+  showToast(`🗑️ スロット${num}を削除しました`);
+}
+
+function applySlotCfg(cfg) {
+  if (!cfg) return;
+  if (cfg.pageTitle) document.getElementById('page-title').value = cfg.pageTitle;
+  if (cfg.ampm)      document.getElementById('ampm').value = cfg.ampm;
+  if (cfg.startH)    document.getElementById('start-hour').value = cfg.startH;
+  if (cfg.span)      document.getElementById('span').value = cfg.span;
+  if (cfg.firstEvent) document.getElementById('first-event').value = cfg.firstEvent;
+  if (cfg.lastEvent)  document.getElementById('last-event').value = cfg.lastEvent;
+  if (cfg.mode) document.querySelector(`input[name="imode"][value="${cfg.mode}"]`).checked = true;
+  if (cfg.schedules && cfg.schedules.length) {
+    items = cfg.schedules.map((v, i) => ({ id: i+1, v }));
+    nid = items.length + 1;
+    renderList();
+  }
+  updatePreview();
+  autoSaveDraft();
+}
+
+function renderSlots() {
+  const container = document.getElementById('slots-container');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const s = slots[i];
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed #c0ccd8;';
+    if (s) {
+      div.innerHTML = `
+        <div style="flex:1;font-size:13px;font-weight:700;color:#1a2a3a;">
+          <span style="color:#3b82c4;font-weight:900;">📁 ${i}.</span> ${escHtml(s.label)}
+        </div>
+        <button onclick="loadFromSlot(${i})" style="padding:5px 12px;border:none;border-radius:8px;background:#dbeeff;color:#1e4f87;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">よみこむ</button>
+        <button onclick="saveToSlot(${i})" style="padding:5px 12px;border:none;border-radius:8px;background:#fff0e6;color:#e07430;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">うわがき</button>
+        <button onclick="deleteSlot(${i})" style="padding:5px 10px;border:none;border-radius:8px;background:#ffeaea;color:#d94040;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">✕</button>
+      `;
+    } else {
+      div.innerHTML = `
+        <div style="flex:1;font-size:13px;color:#aaa;font-weight:700;">📂 ${i}. （あき）</div>
+        <button onclick="saveToSlot(${i})" style="padding:5px 12px;border:none;border-radius:8px;background:#f0f4f8;color:#607080;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">ここにほぞん</button>
+      `;
+    }
+    container.appendChild(div);
+  }
+}
+
+// load existing
+function loadExisting() {
+  try {
+    // まず下書きを復元、なければ jikan_cfg を読む
+    const draftRaw = localStorage.getItem(DRAFT_KEY);
+    const cfgRaw   = localStorage.getItem('jikan_cfg');
+    const raw = draftRaw || cfgRaw;
+    if (!raw) return;
+    const cfg = JSON.parse(raw);
+    if (cfg.pageTitle) document.getElementById('page-title').value = cfg.pageTitle;
+    if (cfg.ampm) document.getElementById('ampm').value = cfg.ampm;
+    if (cfg.startH) document.getElementById('start-hour').value = cfg.startH;
+    if (cfg.span) document.getElementById('span').value = cfg.span;
+    if (cfg.firstEvent) document.getElementById('first-event').value = cfg.firstEvent;
+    if (cfg.lastEvent) document.getElementById('last-event').value = cfg.lastEvent;
+    if (cfg.mode) document.querySelector(`input[name="imode"][value="${cfg.mode}"]`).checked = true;
+    if (cfg.schedules && cfg.schedules.length) {
+      items = cfg.schedules.map((v, i) => ({ id: i+1, v }));
+      nid = items.length + 1;
+    }
+    // jikan_cfg（反映済み）があればリンクを表示
+    if (cfgRaw) {
+      document.getElementById('student-link-card').style.display = 'flex';
+    }
+  } catch(e) {}
+}
+
+loadExisting();
+renderList();
+updatePreview();
+loadSlots();
+bindAutoSave();
+</script>
+</body>
+</html>
