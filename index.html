@@ -1258,9 +1258,10 @@ function renderInputs(){
     g.style.top   = '6px';
 
     // ── 1段目：午前／午後（午前/午後表記のときのみ表示）──
-    const ampmDiv = document.createElement('div');
-    ampmDiv.className = 'inp-ampm';
-    if(cfg.ampm !== '24h' && cfg.ampm !== '12h'){
+    const showAmpm = (cfg.ampm !== '24h' && cfg.ampm !== '12h');
+    if(showAmpm){
+      const ampmDiv = document.createElement('div');
+      ampmDiv.className = 'inp-ampm';
       const ampmBtn = document.createElement('div');
       ampmBtn.className='tap-val'; ampmBtn.id=`ampm${idx}`;
       ampmBtn.textContent = cfg.ampm;
@@ -1292,11 +1293,7 @@ function renderInputs(){
     tRow.appendChild(hBtn); tRow.appendChild(hUnit);
     tRow.appendChild(mBtn); tRow.appendChild(mUnit);
 
-    // ── 3段目：まで ──
-    const madeDiv = document.createElement('div');
-    madeDiv.className='inp-made'; madeDiv.textContent='まで';
-
-    // ── 予定入力行（タップ式）──
+    // ── 予定入力行（タップ式）──「まで」は削除 ──
     const pd = document.createElement('div'); pd.className='inp-plan';
     let pe;
     if(cfg.mode==='select'&&cfg.schedules&&cfg.schedules.length){
@@ -1328,7 +1325,6 @@ function renderInputs(){
     pd.appendChild(pe);
 
     g.appendChild(tRow);
-    g.appendChild(madeDiv);
     g.appendChild(pd);
     row.appendChild(g);
   });
