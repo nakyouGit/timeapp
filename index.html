@@ -1234,6 +1234,15 @@ function bindArrowDrag(handle, idx, which){
 // ────────────────────────────────────────────────────────
 function renderInputs(){
   const row = document.getElementById('inputs-row');
+
+  // ── 既存の入力値を保存 ──
+  const saved = segStates.map((_,i)=>({
+    ampm: document.getElementById(`ampm${i}`)?.textContent || '',
+    th:   document.getElementById(`th${i}`)?.textContent  || '',
+    tm:   document.getElementById(`tm${i}`)?.textContent  || '',
+    plan: (()=>{ const e=document.getElementById(`pi${i}`); return e?(e.value||e.textContent):''; })()
+  }));
+
   row.innerHTML='';
   // 入力エリアへのタッチはドラッグハンドルに干渉させない
   row.addEventListener('touchstart', e => e.stopPropagation(), {passive:true});
@@ -1327,6 +1336,21 @@ function renderInputs(){
     g.appendChild(tRow);
     g.appendChild(pd);
     row.appendChild(g);
+  });
+
+  // ── 入力値を復元 ──
+  saved.forEach((s,i)=>{
+    const amEl = document.getElementById(`ampm${i}`);
+    const thEl = document.getElementById(`th${i}`);
+    const tmEl = document.getElementById(`tm${i}`);
+    const piEl = document.getElementById(`pi${i}`);
+    if(amEl && s.ampm) amEl.textContent = s.ampm;
+    if(thEl && s.th && s.th !== '?') thEl.textContent = s.th;
+    if(tmEl && s.tm && s.tm !== '?') tmEl.textContent = s.tm;
+    if(piEl && s.plan && s.plan !== 'よていをえらぶ'){
+      if(piEl.tagName === 'INPUT' || piEl.tagName === 'SELECT') piEl.value = s.plan;
+      else piEl.textContent = s.plan;
+    }
   });
 }
 
